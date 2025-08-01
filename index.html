@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valyachan GPT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            /* Updated background with an image of a wise and humane old man */
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://unsplash.it/1920/1080?image=987');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-blend-mode: multiply;
+        }
+        .container-card {
+            width: 90%;
+            max-width: 500px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            /* Made the background of the card more transparent */
+            background-color: rgba(0, 0, 0, 0.1); /* Adjusted for more transparency */
+            backdrop-filter: blur(5px); /* Reduced blur to show more of the background image */
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease-in-out;
+        }
+        .container-card:hover {
+            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.6), 0 20px 20px -10px rgba(0, 0, 0, 0.5);
+        }
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #555 transparent;
+            padding-right: 0.5rem;
+            scroll-behavior: smooth;
+        }
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background-color: #4a5568;
+            border-radius: 10px;
+            border: 2px solid transparent;
+        }
+        .message {
+            max-width: 75%;
+            padding: 1rem;
+            border-radius: 1.5rem;
+            margin-bottom: 1rem;
+            transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+        }
+        .message.user {
+            background-color: #3b82f6;
+            color: #fff;
+            margin-left: auto;
+            border-bottom-right-radius: 0.5rem;
+            border-top-right-radius: 1.5rem;
+            border-bottom-left-radius: 1.5rem;
+        }
+        .message.bot {
+            background-color: #4b5563;
+            color: #fff;
+            margin-right: auto;
+            border-bottom-left-radius: 0.5rem;
+            border-top-left-radius: 1.5rem;
+            border-bottom-right-radius: 1.5rem;
+        }
+        .loading-text {
+            color: #fff;
+            font-style: italic;
+            text-align: center;
+        }
+        /* Animation for loading dots */
+        @keyframes typing {
+            0%, 100% {
+                content: '';
+            }
+            33% {
+                content: '.';
+            }
+            66% {
+                content: '..';
+            }
+            100% {
+                content: '...';
+            }
+        }
+        .loading-text::after {
+            content: '';
+            animation: typing 1.5s infinite;
+            display: inline-block;
+            vertical-align: bottom;
+            margin-left: 5px;
+        }
+
+        .cta-button {
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+        .cta-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.6);
+        }
+        .cta-button:active {
+            transform: translateY(1px);
+            box-shadow: 2px 5px rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Main Front Page Section -->
+    <div id="front-page" class="text-white text-center p-8 container-card">
+        <div class="mb-8">
+            <div class="w-24 h-24 mx-auto mb-4 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-6xl transform transition-transform duration-500 hover:scale-110">
+                👴
+            </div>
+            <h1 class="text-4xl font-bold mb-2">Valyachan GPT</h1>
+            <p class="text-gray-300 italic">നിനക്കെന്താ മോനേ അറിയേണ്ടത്?</p>
+        </div>
+        <div class="text-lg mb-8">
+            <p>വല്യച്ചൻ, 75 വയസ്സുള്ള ഒരു തമാശക്കാരനായ വിവേകിയായ മനുഷ്യനാണ്. തൻ്റെ ജീവിതാനുഭവങ്ങളിലൂടെ അദ്ദേഹം സത്യം മാത്രം പറയും.</p>
+        </div>
+        <button
+            id="start-chat-button"
+            class="px-8 py-4 bg-blue-600 text-white font-bold text-lg rounded-full cta-button"
+            onclick="showChatPage()"
+        >
+            ചാറ്റ് തുടങ്ങാം
+        </button>
+    </div>
+
+    <!-- Chat Page Section (Initially hidden) -->
+    <div id="chat-page" class="container-card" style="display: none;">
+        <!-- Chat Header -->
+        <div class="flex items-center space-x-4 mb-6 pb-4 border-b border-gray-600">
+            <!-- Back to Home Button -->
+            <button onclick="showFrontPage()" class="p-2 text-gray-400 hover:text-white transition-colors duration-200">
+                <i class="fas fa-arrow-left text-2xl"></i>
+            </button>
+            <div class="w-12 h-12 flex-shrink-0 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-3xl transition-transform duration-300 transform hover:scale-110">
+                👴
+            </div>
+            <div class="text-white flex-grow">
+                <h1 class="text-2xl font-bold">Valyachan GPT</h1>
+                <p class="text-sm text-gray-400">നിനക്കെന്താ മോനേ അറിയേണ്ടത്?</p>
+            </div>
+        </div>
+
+        <!-- Chat Messages Display Area -->
+        <div id="messages-container" class="chat-messages space-y-4">
+            <!-- Messages will be injected here by JavaScript -->
+        </div>
+
+        <!-- Message Input Form -->
+        <form id="message-form" class="mt-6 flex space-x-3">
+            <input
+                id="message-input"
+                type="text"
+                class="flex-grow p-4 rounded-full bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                placeholder="Type your message..."
+            />
+            <button
+                id="send-button"
+                type="submit"
+                class="p-4 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 disabled:bg-gray-500 disabled:cursor-not-allowed cta-button"
+            >
+                <i class="fas fa-paper-plane text-xl"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Credits section at the bottom of the page -->
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-center text-gray-400 text-sm">
+        <p class="transform hover:scale-105 transition-transform duration-200">Credits to <span class="font-bold text-gray-200">Team Bitbybit</span></p>
+    </div>
+
+    <script>
+        // Get references to DOM elements
+        const frontPage = document.getElementById('front-page');
+        const chatPage = document.getElementById('chat-page');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const messagesContainer = document.getElementById('messages-container');
+        const sendButton = document.getElementById('send-button');
+
+        // A list of iconic Malayalam movie dialogues to be used as bot responses
+        const malayalamDialogues = [
+            "ഇതൊരു തമാശക്കളിയല്ല!",
+            "ഇജ്ജ് പൊളിയാടോ!",
+            "തന്തയ്ക്ക് പിറക്കാത്തവൻ!",
+            "എന്താടോ, ഇത് വല്ല നെയ്യപ്പമോ?",
+            "എൻ്റെ ജീവിതം ഒരു കഥയാണ്, പക്ഷെ അതിൽ ഞാനാണ് നായകൻ.",
+            "അങ്ങനെയൊന്നും പറയാൻ പറ്റില്ല, എന്നാലും പറയാം.",
+            "ഇതല്ല ഇതിനപ്പുറം ചാടിക്കടന്നവനാണ് ഞാൻ!",
+            "എന്നെ തല്ലേണ്ടമ്മാവാ, ഞാൻ നന്നാവൂല!",
+            "ഒറ്റയ്ക്ക് വഴി വെട്ടി വന്നതാടാ!",
+            "എന്താ, പണി പാളിയോ?",
+            "മറ്റുള്ളവരുടെ മുന്നിൽ വെച്ച് എന്നെ അപമാനിച്ചു സംസാരിക്കരുത്.",
+            "താനെന്നെ പഠിപ്പിക്കാൻ വരണ്ട!",
+            "കുടുംബം രക്ഷിക്കാൻ പോവാണ് ഞാൻ, നീ പോടാ!",
+            "എന്താ, നിനക്കൊരു പേടിയില്ലാത്തത്?",
+            "ശിവനെ, ഇത് ഏത് ജില്ല?",
+            "ഇങ്ങനെയൊക്കെ സംഭവിച്ചാൽ പിന്നെ ഞാൻ എങ്ങനെ സമാധാനത്തോടെ ജീവിക്കും?",
+            "ഓ, അപ്പോ അതാണ് സംഭവം.",
+            "അങ്ങനെ പവനായി ശവമായി.",
+            "ഞാൻ എന്ത് ചെയ്യും?",
+            "പോലീസ് കേസ് ആക്കാൻ പറ്റില്ല.",
+            "എന്താടാ ഒരു മണി ശബ്ദം?",
+            "താൻ ആരാണെന്ന് തനിക്കറിയില്ലെങ്കിൽ അതിന് താക്കോൽ എൻ്റെ കൈയിൽ ഇല്ലല്ല.",
+            "മുറിച്ചുമാറ്റിയെറിയും ഞാൻ!",
+            "ഇജ്ജ് നന്നാവൂല!",
+            "എടാ മരങ്ങോടാ!",
+            "നീയൊക്കെ എൻ്റെ മുന്നിൽ ഒരു പുല്ലാ!",
+            "നീ പോ മോനേ ദിനേശാ!",
+            "ഓർമ്മയുണ്ടോ ഈ മുഖം?",
+            "സാധനം കയ്യിലുണ്ടോ?",
+            "സെൻസ് ഉണ്ടാവണം, സെൻസിബിലിറ്റി ഉണ്ടാവണം, സെൻസിറ്റിവിറ്റി ഉണ്ടാവണം!",
+            "വഴി മാറടാ, മുണ്ടക്കൽ ശേഖരാ!",
+            "പട്ടണത്തിൽ സുന്ദരി, വീട്ടിൽ കുരങ്ങൻ.",
+            "ഇവൻ എൻ്റെ ശത്രുവാണ്!",
+            "കിച്ചാ, നീ പോടാ!",
+            "എന്തിനാടാ കൊന്നിട്ട് നമ്മൾ അനാഥരാണ് ഗുണ്ടകളല്ല",
+            "സവാരി ഗിരി ഗിരി...",
+            "മോനെ ദിനേശാ!",
+            "പാവാട വച്ച് നിർത്തു ഡാ!",
+            "എടാ വാഴ... പോയില്ലേ?",
+            "എന്തൊക്കെയോ സംഭവിക്കുന്നു ഇവിടെ!",
+            "സാധനം കയ്യിൽ ഉണ്ട്!",
+            "പണി കിട്ടി അല്ലേ?",
+            "നിന്റെ ശരിയല്ലെന്ന് ഞാൻ അറിഞ്ഞിരുന്നു.",
+            "കിടു അല്ലി!",
+            "മഴയെ തൊട്ട് നോക്കുന്ന ടൈപ്പ് ആൺ ഞാൻ.",
+            "കൊള്ളാം... ശരിക്കും കൊള്ളാം!",
+            "ഈ വട്ടം ഞാൻ വശ്യം ആക്കില്ല.",
+            "ഞാൻ ഒരു ഐറ്റം ആണു.",
+            "സത്യം പറഞ്ഞു ഞാൻ ഭയങ്കര മനുഷ്യനാണ്.",
+            "കുഞ്ഞാട്ടാകുന്ന സാധനം അല്ലേ ഞാൻ!",
+            "അതിനൊരു ലിമിറ്റ് ഉണ്ടല്ലോ!",
+            "ഇനി ഞാൻ തുടങ്ങുന്നു!",
+            "ഞാൻ ശരിക്കും സീരിയസ് ആണു.",
+            "വിഭിന്നായ ചിന്തകൾ!",
+            "നിന്റെ വീട്ടിലാണ് ഡാ ഞാൻ കഴിച്ചത്.",
+            "ഞാൻ ഒരു ഭരണഘടനയാണ്.",
+            "ഡേയ് ഞാൻ പഴയ ഞാൻ അല്ല.",
+            "വന്നല്ലോ! എന്തൊരു രസം!",
+            "ഒരു സാധനം തന്നെ!",
+            "അംബിലി ചേട്ടൻ സ്റ്റൈൽ!",
+            "നിന്റെ ആ ഡയലോഗ് ഞാൻ കേട്ടിട്ടുണ്ട്.",
+            "ഈ കഥ ഇപ്പോഴും കഴിഞ്ഞില്ല.",
+            "സംഭവം നടക്കാൻ പോവുന്നു!",
+            "ചില ചില സംഭവന്മാർ!"
+        ];
+        
+        // State variables
+        let isLoading = false;
+        
+        // Function to create and append a new message element to the chat
+        function createMessageElement(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender);
+            messageDiv.textContent = text;
+            messagesContainer.appendChild(messageDiv);
+        }
+
+        // Function to scroll the chat to the bottom
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Function to show/hide the loading indicator
+        function toggleLoading(state) {
+            isLoading = state;
+            messageInput.disabled = state;
+            sendButton.disabled = state;
+            
+            if (state) {
+                const loadingMessage = document.createElement('div');
+                loadingMessage.classList.add('message', 'bot', 'loading-text');
+                loadingMessage.textContent = 'Valyachan aalochikkunnu'; // Text without dots
+                messagesContainer.appendChild(loadingMessage);
+            } else {
+                const loadingIndicator = document.querySelector('.message.loading-text');
+                if (loadingIndicator) {
+                    loadingIndicator.remove();
+                }
+            }
+            scrollToBottom();
+        }
+
+        // Function to switch from the front page to the chat page
+        function showChatPage() {
+            frontPage.style.display = 'none';
+            chatPage.style.display = 'flex';
+        }
+
+        // New function to switch from chat page back to front page
+        function showFrontPage() {
+            chatPage.style.display = 'none';
+            frontPage.style.display = 'flex';
+            // Optional: Clear messages when going back to the home page
+            messagesContainer.innerHTML = '';
+        }
+
+        // Handle form submission
+        messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userMessage = messageInput.value.trim();
+            if (userMessage === '' || isLoading) return;
+
+            // Display user message
+            createMessageElement(userMessage, 'user');
+            messageInput.value = '';
+            toggleLoading(true);
+            scrollToBottom();
+
+            // Simulate a brief delay to make the response feel more natural
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            try {
+                // Select a random dialogue from the array
+                const randomIndex = Math.floor(Math.random() * malayalamDialogues.length);
+                const botResponseText = malayalamDialogues[randomIndex];
+
+                // Display bot message
+                createMessageElement(botResponseText, 'bot');
+
+            } catch (error) {
+                console.error('Failed to get bot response:', error);
+                createMessageElement("Enthelum thettu patti, mone. Enikku ippo onnum parayanilla.", 'bot');
+            } finally {
+                toggleLoading(false);
+                scrollToBottom();
+            }
+        });
+    </script>
+</body>
+</html>
