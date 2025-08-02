@@ -1,493 +1,134 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Valyachan GPT</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+import React, { useState, useEffect, useRef } from 'react';
+import { SendHorizonal, Loader2 } from 'lucide-react'; // Using lucide-react for icons
+
+// Main App component
+export default function App() {
+  // State to hold the list of chat messages. Each message is an object.
+  const [messages, setMessages] = useState([]);
+  // State to hold the current user input in the message box.
+  const [input, setInput] = useState('');
+  // State to track if the bot is currently generating a response.
+  const [isLoading, setIsLoading] = useState(false);
+  // Ref for the chat messages container to enable auto-scrolling to the bottom.
+  const messagesEndRef = useRef(null);
+  
+  // Placeholder URL for the wise old man background image.
+  // This public domain image is from Wikimedia Commons.
+  const backgroundImage = 'https://upload.wikimedia.org/wikipedia/commons/e/e6/A_Wise_Old_Man.jpg';
+
+  // useEffect hook to scroll to the bottom of the chat window whenever messages are updated.
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Function to handle the form submission when the user sends a message.
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userMessage = input;
+    // Add the user's message to the chat history immediately.
+    setMessages((prevMessages) => [...prevMessages, { text: userMessage, sender: 'user' }]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      // Create a prompt for the Valyachan GPT.
+      const prompt = `You are a wise, old man persona known as "Valyachan" from a Malayalam movie. Your job is to respond to user messages with short, funny, and iconic Malayalam movie dialogues. Do not break character. Do not provide translations or explanations. The response must be a single, witty Malayalam movie dialogue. Respond to the following user message: "${userMessage}".`;
+      
+      let chatHistory = [];
+      chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+      const payload = { contents: chatHistory };
+      const apiKey = "";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const botResponseText = result.candidates?.[0]?.content?.parts?.[0]?.text || 'Kshemikkanam, Valyachan ippo online-il illa.';
+
+      // Add the bot's response to the chat history.
+      setMessages((prevMessages) => [...prevMessages, { text: botResponseText, sender: 'bot' }]);
+
+    } catch (error) {
+      console.error('Failed to fetch from API:', error);
+      // Handle the error by adding a default error message from the bot.
+      setMessages((prevMessages) => [...prevMessages, { text: "Enthelum thettu patti, mone. Enikku ippo onnum parayanilla.", sender: 'bot' }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    // Main container with the background image and full screen dimensions.
+    <div className="flex h-screen w-screen justify-center items-center p-4" 
+         style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+      
+      {/* Semi-transparent chat container for the "more transparent" effect. */}
+      <div className="w-full max-w-xl h-[80vh] flex flex-col bg-black bg-opacity-70 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-gray-600">
         
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            /* New background image of an old man in a field */
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://unsplash.it/1920/1080?image=987');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            background-blend-mode: multiply;
-        }
-        .container-card {
-            width: 90%;
-            max-width: 500px;
-            height: 80vh;
-            display: flex;
-            flex-direction: column;
-            background-color: rgba(0, 0, 0, 0.1); 
-            backdrop-filter: blur(5px);
-            border-radius: 1.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
-            padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease-in-out;
-        }
-        .container-card:hover {
-            box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.6), 0 20px 20px -10px rgba(0, 0, 0, 0.5);
-        }
-        .chat-messages {
-            flex-grow: 1;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #555 transparent;
-            padding-right: 0.5rem;
-            scroll-behavior: smooth;
-        }
-        .chat-messages::-webkit-scrollbar {
-            width: 8px;
-        }
-        .chat-messages::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .chat-messages::-webkit-scrollbar-thumb {
-            background-color: #4a5568;
-            border-radius: 10px;
-            border: 2px solid transparent;
-        }
-        .message {
-            max-width: 75%;
-            padding: 1rem;
-            border-radius: 1.5rem;
-            margin-bottom: 1rem;
-            transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
-        }
-        .message.user {
-            background-color: #3b82f6;
-            color: #fff;
-            margin-left: auto;
-            border-bottom-right-radius: 0.5rem;
-            border-top-right-radius: 1.5rem;
-            border-bottom-left-radius: 1.5rem;
-        }
-        .message.bot {
-            background-color: #4b5563;
-            color: #fff;
-            margin-right: auto;
-            border-bottom-left-radius: 0.5rem;
-            border-top-left-radius: 1.5rem;
-            border-bottom-right-radius: 1.5rem;
-        }
-        .loading-text {
-            color: #fff;
-            font-style: italic;
-            text-align: center;
-        }
-        /* Animation for loading dots */
-        @keyframes typing {
-            0%, 100% {
-                content: '';
-            }
-            33% {
-                content: '.';
-            }
-            66% {
-                content: '..';
-            }
-            100% {
-                content: '...';
-            }
-        }
-        .loading-text::after {
-            content: '';
-            animation: typing 1.5s infinite;
-            display: inline-block;
-            vertical-align: bottom;
-            margin-left: 5px;
-        }
-        .cta-button {
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-        }
-        .cta-button:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.6);
-        }
-        .cta-button:active {
-            transform: translateY(1px);
-            box-shadow: 2px 5px rgba(59, 130, 246, 0.4);
-        }
-        .audio-message-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-        .audio-message-container > span {
-             padding: 1rem;
-             border-radius: 1.5rem;
-             background-color: #4b5563;
-             color: #fff;
-             flex-grow: 1;
-        }
-    </style>
-</head>
-<body>
+        {/* Chat header */}
+        <div className="flex items-center space-x-4 mb-4 pb-4 border-b border-gray-500">
+          <div className="w-12 h-12 flex-shrink-0 bg-gray-400 rounded-full flex items-center justify-center font-bold text-2xl text-black">
+            👴
+          </div>
+          <div className="text-white">
+            <h1 className="text-xl font-bold">Valyachan GPT</h1>
+            <p className="text-sm text-gray-400">നിനക്കെന്താ മോനേ അറിയേണ്ടത്?</p>
+          </div>
+        </div>
 
-    <!-- Main Front Page Section -->
-    <div id="front-page" class="text-white text-center p-8 container-card">
-        <div class="mb-8">
-            <div class="w-24 h-24 mx-auto mb-4 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-6xl transform transition-transform duration-500 hover:scale-110">
-                👴
+        {/* Chat messages display area */}
+        <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+          {messages.map((msg, index) => (
+            <div key={index} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`p-4 rounded-3xl max-w-[75%] ${msg.sender === 'user' ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-700 text-white rounded-bl-none'}`}>
+                {msg.text}
+              </div>
             </div>
-            <h1 class="text-4xl font-bold mb-2">Valyachan GPT</h1>
-            <p class="text-gray-300 italic">നിനക്കെന്താ മോനേ അറിയേണ്ടത്?</p>
-        </div>
-        <div class="text-lg mb-8">
-            <p>വല്യച്ചൻ, 75 വയസ്സുള്ള ഒരു തമാശക്കാരനായ വിവേകിയായ മനുഷ്യനാണ്. തൻ്റെ ജീവിതാനുഭവങ്ങളിലൂടെ അദ്ദേഹം സത്യം മാത്രം പറയും.</p>
-        </div>
-        <button
-            id="start-chat-button"
-            class="px-8 py-4 bg-blue-600 text-white font-bold text-lg rounded-full cta-button"
-            onclick="showChatPage()"
-        >
-            ചാറ്റ് തുടങ്ങാം
-        </button>
-    </div>
-
-    <!-- Chat Page Section (Initially hidden) -->
-    <div id="chat-page" class="container-card" style="display: none;">
-        <!-- Chat Header -->
-        <div class="flex items-center space-x-4 mb-6 pb-4 border-b border-gray-600">
-            <!-- Back to Home Button -->
-            <button onclick="showFrontPage()" class="p-2 text-gray-400 hover:text-white transition-colors duration-200">
-                <i class="fas fa-arrow-left text-2xl"></i>
-            </button>
-            <div class="w-12 h-12 flex-shrink-0 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-3xl transition-transform duration-300 transform hover:scale-110">
-                👴
+          ))}
+          
+          {/* Loading indicator for the bot's response */}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="p-4 rounded-3xl bg-gray-700 text-white rounded-bl-none">
+                <Loader2 className="animate-spin" size={24} />
+              </div>
             </div>
-            <div class="text-white flex-grow">
-                <h1 class="text-2xl font-bold">Valyachan GPT</h1>
-                <p class="text-sm text-gray-400">നിനക്കെന്താ മോനേ അറിയേണ്ടത്?</p>
-            </div>
-            <!-- Useless Button -->
-            <button class="p-2 bg-gray-700 text-white rounded-full transition-colors duration-200 hover:bg-gray-600" onclick="console.log('നിങ്ങൾ ഒരു ഉപയോഗശൂന്യമായ ബട്ടൺ അമർത്തി!')">
-                <i class="fas fa-info-circle text-lg"></i>
-            </button>
+          )}
+
+          {/* Ref for auto-scrolling */}
+          <div ref={messagesEndRef} />
         </div>
 
-        <!-- Chat Messages Display Area -->
-        <div id="messages-container" class="chat-messages space-y-4">
-            <!-- Messages will be injected here by JavaScript -->
-        </div>
-
-        <!-- Message Input Form -->
-        <form id="message-form" class="mt-6 flex space-x-3">
-            <input
-                id="message-input"
-                type="text"
-                class="flex-grow p-4 rounded-full bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
-                placeholder="Type your message..."
-            />
-            <button
-                id="send-button"
-                type="submit"
-                class="p-4 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 disabled:bg-gray-500 disabled:cursor-not-allowed cta-button"
-            >
-                <i class="fas fa-paper-plane text-xl"></i>
-            </button>
+        {/* Message input form */}
+        <form onSubmit={handleSendMessage} className="mt-6 flex gap-3">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            className="flex-1 p-4 rounded-full bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+            placeholder="Valyacha, oru karyam chodikkatte..."
+            disabled={isLoading}
+          />
+          <button
+            type="submit"
+            className="p-4 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300 disabled:bg-gray-500 disabled:cursor-not-allowed"
+            disabled={isLoading}
+          >
+            <SendHorizonal size={24} />
+          </button>
         </form>
+      </div>
     </div>
+  );
+}
 
-    <!-- Credits section at the bottom of the page -->
-    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 text-center text-gray-400 text-sm">
-        <p class="transform hover:scale-105 transition-transform duration-200">Credits to <span class="font-bold text-gray-200">Team Bitbybit</span></p>
-    </div>
-
-    <script>
-        // Get references to DOM elements
-        const frontPage = document.getElementById('front-page');
-        const chatPage = document.getElementById('chat-page');
-        const messageForm = document.getElementById('message-form');
-        const messageInput = document.getElementById('message-input');
-        const messagesContainer = document.getElementById('messages-container');
-        const sendButton = document.getElementById('send-button');
-
-        // State variables
-        let isLoading = false;
-        let hasWelcomed = false; // New state variable to track if welcome message has been played
-        let chatHistory = []; // To store the conversation for the LLM
-
-        // Helper function to convert base64 to ArrayBuffer
-        function base64ToArrayBuffer(base64) {
-            const binaryString = atob(base64);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-            return bytes.buffer;
-        }
-        
-        // Helper function to convert PCM data to WAV Blob
-        function pcmToWav(pcmData, sampleRate) {
-            const pcm16 = new Int16Array(pcmData);
-            const dataLength = pcm16.byteLength;
-            const buffer = new ArrayBuffer(44 + dataLength);
-            const view = new DataView(buffer);
-            
-            // WAV file header
-            let offset = 0;
-            const writeString = (str) => {
-                for (let i = 0; i < str.length; i++) {
-                    view.setUint8(offset + i, str.charCodeAt(i));
-                }
-                offset += str.length;
-            };
-
-            // RIFF chunk descriptor
-            writeString('RIFF'); // ChunkID
-            view.setUint32(offset, 36 + dataLength, true); // ChunkSize
-            offset += 4;
-            writeString('WAVE'); // Format
-            // fmt sub-chunk
-            writeString('fmt '); // Subchunk1ID
-            view.setUint32(offset, 16, true); // Subchunk1Size
-            offset += 4;
-            view.setUint16(offset, 1, true); // AudioFormat (1=PCM)
-            offset += 2;
-            view.setUint16(offset, 1, true); // NumChannels (1)
-            offset += 2;
-            view.setUint32(offset, sampleRate, true); // SampleRate
-            offset += 4;
-            view.setUint32(offset, sampleRate * 2, true); // ByteRate
-            offset += 4;
-            view.setUint16(offset, 2, true); // BlockAlign
-            offset += 2;
-            view.setUint16(offset, 16, true); // BitsPerSample
-            offset += 2;
-            // data sub-chunk
-            writeString('data'); // Subchunk2ID
-            view.setUint32(offset, dataLength, true); // Subchunk2Size
-            offset += 4;
-
-            // Write PCM data
-            for (let i = 0; i < pcm16.length; i++) {
-                view.setInt16(offset, pcm16[i], true);
-                offset += 2;
-            }
-            
-            return new Blob([view], { type: 'audio/wav' });
-        }
-
-        // Function to create and append a new message element to the chat
-        function createMessageElement(text, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', sender);
-            messageDiv.textContent = text;
-            messagesContainer.appendChild(messageDiv);
-            return messageDiv;
-        }
-
-        // Function to create and append a bot message with an audio player
-        function createAudioMessage(text, audioUrl, autoplay = false) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', 'bot', 'audio-message-container');
-            
-            // Add the play button
-            const playButton = document.createElement('button');
-            playButton.innerHTML = `<i class="fas fa-play"></i>`;
-            playButton.classList.add('p-2', 'bg-white', 'text-gray-800', 'rounded-full', 'w-10', 'h-10', 'flex', 'items-center', 'justify-center', 'shadow-md', 'hover:scale-110', 'transition-all');
-            
-            const audio = new Audio(audioUrl);
-            playButton.onclick = () => {
-                audio.play();
-            };
-
-            // Add the text content
-            const textSpan = document.createElement('span');
-            textSpan.textContent = text;
-
-            messageDiv.appendChild(playButton);
-            messageDiv.appendChild(textSpan);
-            messagesContainer.appendChild(messageDiv);
-
-            if (autoplay) {
-                audio.play();
-            }
-            scrollToBottom();
-        }
-
-        // Function to scroll the chat to the bottom
-        function scrollToBottom() {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        // Function to show/hide the loading indicator
-        function toggleLoading(state) {
-            isLoading = state;
-            messageInput.disabled = state;
-            sendButton.disabled = state;
-            
-            if (state) {
-                const loadingMessage = document.createElement('div');
-                loadingMessage.classList.add('message', 'bot', 'loading-text');
-                loadingMessage.textContent = 'വല്യച്ഛൻ സംസാരിക്കുന്നു';
-                messagesContainer.appendChild(loadingMessage);
-            } else {
-                const loadingIndicator = document.querySelector('.message.loading-text');
-                if (loadingIndicator) {
-                    loadingIndicator.remove();
-                }
-            }
-            scrollToBottom();
-        }
-
-        // Function to switch from the front page to the chat page
-        async function showChatPage() {
-            frontPage.style.display = 'none';
-            chatPage.style.display = 'flex';
-
-            if (!hasWelcomed) {
-                hasWelcomed = true;
-                const welcomeMessage = "മോനേ, നിനക്കെന്താ അറിയേണ്ടത്?";
-                await getAndPlayAudioResponse(welcomeMessage, true);
-            }
-        }
-
-        // New function to switch from chat page back to front page
-        function showFrontPage() {
-            chatPage.style.display = 'none';
-            frontPage.style.display = 'flex';
-            // Optional: Clear messages when going back to the home page
-            messagesContainer.innerHTML = '';
-            hasWelcomed = false; // Reset the welcome flag
-            chatHistory = []; // Reset chat history
-        }
-
-        // New function to get audio from API and create message
-        async function getAndPlayAudioResponse(text, autoplay = false) {
-            toggleLoading(true);
-            
-            try {
-                const payload = {
-                    contents: [{
-                        parts: [{ text: `Say in a calm, mature, and friendly male voice with a clear Indian-English accent, using the Malayalam script: "${text}"` }]
-                    }],
-                    generationConfig: {
-                        responseModalities: ["AUDIO"],
-                        speechConfig: {
-                            voiceConfig: {
-                                prebuiltVoiceConfig: { voiceName: "Gacrux" }
-                            }
-                        }
-                    },
-                    model: "gemini-2.5-flash-preview-tts"
-                };
-
-                const apiKey = ""; 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`API call failed with status: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                const part = result?.candidates?.[0]?.content?.parts?.[0];
-                const audioData = part?.inlineData?.data;
-                const mimeType = part?.inlineData?.mimeType;
-                
-                if (audioData && mimeType && mimeType.startsWith("audio/")) {
-                    const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
-                    const pcmData = base64ToArrayBuffer(audioData);
-                    const wavBlob = pcmToWav(pcmData, sampleRate);
-                    const audioUrl = URL.createObjectURL(wavBlob);
-                    createAudioMessage(text, audioUrl, autoplay);
-                } else {
-                    throw new Error("Invalid or missing audio data in API response.");
-                }
-
-            } catch (error) {
-                console.error('Failed to get bot response:', error);
-                createMessageElement("എന്തെങ്കിലും തെറ്റ് പറ്റി, മോനേ. എനിക്ക് ഇപ്പോൾ ഒന്നും പറയാൻ പറ്റുന്നില്ല.", 'bot');
-            } finally {
-                toggleLoading(false);
-            }
-        }
-        
-        // New function to get a text response from the LLM
-        async function getBotResponse(userMessage) {
-            try {
-                chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
-
-                const systemInstruction = `You are Valyachan, a 75-year-old man from Kerala, India. You are wise, witty, and a bit sarcastic. You only speak Malayalam. Your responses should be short, in a very casual, fatherly tone, and reflect your age and wisdom. Avoid providing factual answers directly. Instead, give philosophical or humorous advice from your life experience.`;
-                
-                const payload = { 
-                    contents: [{ role: "user", parts: [{ text: systemInstruction + "\n" + userMessage }] }],
-                    generationConfig: {
-                        temperature: 0.9,
-                        topP: 1,
-                        topK: 1,
-                        responseMimeType: "text/plain",
-                    }
-                };
-
-                const apiKey = "";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`API call failed with status: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-                
-                if (text) {
-                    chatHistory.push({ role: "model", parts: [{ text: text }] });
-                    return text;
-                } else {
-                    throw new Error("Invalid or missing text data in API response.");
-                }
-
-            } catch (error) {
-                console.error('Error fetching LLM response:', error);
-                return "എന്തെങ്കിലും തെറ്റ് പറ്റി, മോനേ. എനിക്ക് ഇപ്പോൾ ഒന്നും പറയാൻ പറ്റുന്നില്ല.";
-            }
-        }
-
-
-        // Handle form submission
-        messageForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const userMessage = messageInput.value.trim();
-            if (userMessage === '' || isLoading) return;
-
-            // Display user message
-            createMessageElement(userMessage, 'user');
-            messageInput.value = '';
-            
-            toggleLoading(true);
-            scrollToBottom();
-            
-            const botResponseText = await getBotResponse(userMessage);
-            await getAndPlayAudioResponse(botResponseText);
-        });
-    </script>
-</body>
-</html>
