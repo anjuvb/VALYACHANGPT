@@ -217,78 +217,11 @@
         const messagesContainer = document.getElementById('messages-container');
         const sendButton = document.getElementById('send-button');
 
-        // A list of iconic Malayalam movie dialogues to be used as bot responses
-        const malayalamDialogues = [
-            "ഇതൊരു തമാശക്കളിയല്ല!",
-            "ഇജ്ജ് പൊളിയാടോ!",
-            
-            "എന്താടോ, ഇത് വല്ല നെയ്യപ്പമോ?",
-            "എൻ്റെ ജീവിതം ഒരു കഥയാണ്, പക്ഷെ അതിൽ ഞാനാണ് നായകൻ.",
-            "അങ്ങനെയൊന്നും പറയാൻ പറ്റില്ല, എന്നാലും പറയാം.",
-            "ഇതല്ല ഇതിനപ്പുറം ചാടിക്കടന്നവനാണ് ഞാൻ!",
-            "എന്നെ തല്ലേണ്ടമ്മാവാ, ഞാൻ നന്നാവൂല!",
-            "ഒറ്റയ്ക്ക് വഴി വെട്ടി വന്നതാടാ!",
-            "എന്താ, പണി പാളിയോ?",
-            "മറ്റുള്ളവരുടെ മുന്നിൽ വെച്ച് എന്നെ അപമാനിച്ചു സംസാരിക്കരുത്.",
-            "താനെന്നെ പഠിപ്പിക്കാൻ വരണ്ട!",
-            "കുടുംബം രക്ഷിക്കാൻ പോവാണ് ഞാൻ, നീ പോടാ!",
-            "എന്താ, നിനക്കൊരു പേടിയില്ലാത്തത്?",
-            "ശിവനെ, ഇത് ഏത് ജില്ല?",
-            "ഇങ്ങനെയൊക്കെ സംഭവിച്ചാൽ പിന്നെ ഞാൻ എങ്ങനെ സമാധാനത്തോടെ ജീവിക്കും?",
-            "ഓ, അപ്പോ അതാണ് സംഭവം.",
-            "അങ്ങനെ പവനായി ശവമായി.",
-            "ഞാൻ എന്ത് ചെയ്യും?",
-            "പോലീസ് കേസ് ആക്കാൻ പറ്റില്ല.",
-            "എന്താടാ ഒരു മണി ശബ്ദം?",
-            "താൻ ആരാണെന്ന് തനിക്കറിയില്ലെങ്കിൽ അതിന് താക്കോൽ എൻ്റെ കൈയിൽ ഇല്ലല്ല.",
-            "മുറിച്ചുമാറ്റിയെറിയും ഞാൻ!",
-            "ഇജ്ജ് നന്നാവൂല!",
-            "എടാ മരങ്ങോടാ!",
-            "നീയൊക്കെ എൻ്റെ മുന്നിൽ ഒരു പുല്ലാ!",
-            "നീ പോ മോനേ ദിനേശാ!",
-            "ഓർമ്മയുണ്ടോ ഈ മുഖം?",
-            "സാധനം കയ്യിലുണ്ടോ?",
-            "സെൻസ് ഉണ്ടാവണം, സെൻസിബിലിറ്റി ഉണ്ടാവണം, സെൻസിറ്റിവിറ്റി ഉണ്ടാവണം!",
-            "വഴി മാറടാ, മുണ്ടക്കൽ ശേഖരാ!",
-            "പട്ടണത്തിൽ സുന്ദരി, വീട്ടിൽ കുരങ്ങൻ.",
-            "ഇവൻ എൻ്റെ ശത്രുവാണ്!",
-            "കിച്ചാ, നീ പോടാ!",
-            "എന്തിനാടാ കൊന്നിട്ട് നമ്മൾ അനാഥരാണ് ഗുണ്ടകളല്ല",
-            "സവാരി ഗിരി ഗിരി...",
-            "മോനെ ദിനേശാ!",
-            "പാവാട വച്ച് നിർത്തു ഡാ!",
-            "എടാ വാഴ... പോയില്ലേ?",
-            "എന്തൊക്കെയോ സംഭവിക്കുന്നു ഇവിടെ!",
-            "സാധനം കയ്യിൽ ഉണ്ട്!",
-            "പണി കിട്ടി അല്ലേ?",
-            "നിന്റെ ശരിയല്ലെന്ന് ഞാൻ അറിഞ്ഞിരുന്നു.",
-            "കിടു അല്ലി!",
-            "മഴയെ തൊട്ട് നോക്കുന്ന ടൈപ്പ് ആൺ ഞാൻ.",
-            "കൊള്ളാം... ശരിക്കും കൊള്ളാം!",
-            "ഈ വട്ടം ഞാൻ വശ്യം ആക്കില്ല.",
-            "ഞാൻ ഒരു ഐറ്റം ആണു.",
-            "സത്യം പറഞ്ഞു ഞാൻ ഭയങ്കര മനുഷ്യനാണ്.",
-            "കുഞ്ഞാട്ടാകുന്ന സാധനം അല്ലേ ഞാൻ!",
-            "അതിനൊരു ലിമിറ്റ് ഉണ്ടല്ലോ!",
-            "ഇനി ഞാൻ തുടങ്ങുന്നു!",
-            "ഞാൻ ശരിക്കും സീരിയസ് ആണു.",
-            "വിഭിന്നായ ചിന്തകൾ!",
-            "നിന്റെ വീട്ടിലാണ് ഡാ ഞാൻ കഴിച്ചത്.",
-            "ഞാൻ ഒരു ഭരണഘടനയാണ്.",
-            "ഡേയ് ഞാൻ പഴയ ഞാൻ അല്ല.",
-            "വന്നല്ലോ! എന്തൊരു രസം!",
-            "ഒരു സാധനം തന്നെ!",
-            "അംബിലി ചേട്ടൻ സ്റ്റൈൽ!",
-            "നിന്റെ ആ ഡയലോഗ് ഞാൻ കേട്ടിട്ടുണ്ട്.",
-            "ഈ കഥ ഇപ്പോഴും കഴിഞ്ഞില്ല.",
-            "സംഭവം നടക്കാൻ പോവുന്നു!",
-            "ചില ചില സംഭവന്മാർ!"
-        ];
-
         // State variables
         let isLoading = false;
         let hasWelcomed = false; // New state variable to track if welcome message has been played
-        
+        let chatHistory = []; // To store the conversation for the LLM
+
         // Helper function to convert base64 to ArrayBuffer
         function base64ToArrayBuffer(base64) {
             const binaryString = atob(base64);
@@ -386,6 +319,7 @@
             if (autoplay) {
                 audio.play();
             }
+            scrollToBottom();
         }
 
         // Function to scroll the chat to the bottom
@@ -432,12 +366,12 @@
             // Optional: Clear messages when going back to the home page
             messagesContainer.innerHTML = '';
             hasWelcomed = false; // Reset the welcome flag
+            chatHistory = []; // Reset chat history
         }
 
         // New function to get audio from API and create message
         async function getAndPlayAudioResponse(text, autoplay = false) {
             toggleLoading(true);
-            scrollToBottom();
             
             try {
                 const payload = {
@@ -488,7 +422,52 @@
                 createMessageElement("എന്തെങ്കിലും തെറ്റ് പറ്റി, മോനേ. എനിക്ക് ഇപ്പോൾ ഒന്നും പറയാൻ പറ്റുന്നില്ല.", 'bot');
             } finally {
                 toggleLoading(false);
-                scrollToBottom();
+            }
+        }
+        
+        // New function to get a text response from the LLM
+        async function getBotResponse(userMessage) {
+            try {
+                chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
+
+                const systemInstruction = `You are Valyachan, a 75-year-old man from Kerala, India. You are wise, witty, and a bit sarcastic. You only speak Malayalam. Your responses should be short, in a very casual, fatherly tone, and reflect your age and wisdom. Avoid providing factual answers directly. Instead, give philosophical or humorous advice from your life experience.`;
+                
+                const payload = { 
+                    contents: [{ role: "user", parts: [{ text: systemInstruction + "\n" + userMessage }] }],
+                    generationConfig: {
+                        temperature: 0.9,
+                        topP: 1,
+                        topK: 1,
+                        responseMimeType: "text/plain",
+                    }
+                };
+
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API call failed with status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (text) {
+                    chatHistory.push({ role: "model", parts: [{ text: text }] });
+                    return text;
+                } else {
+                    throw new Error("Invalid or missing text data in API response.");
+                }
+
+            } catch (error) {
+                console.error('Error fetching LLM response:', error);
+                return "എന്തെങ്കിലും തെറ്റ് പറ്റി, മോനേ. എനിക്ക് ഇപ്പോൾ ഒന്നും പറയാൻ പറ്റുന്നില്ല.";
             }
         }
 
@@ -502,23 +481,12 @@
             // Display user message
             createMessageElement(userMessage, 'user');
             messageInput.value = '';
+            
             toggleLoading(true);
             scrollToBottom();
             
-            try {
-                // Select a random dialogue from the array
-                const randomIndex = Math.floor(Math.random() * malayalamDialogues.length);
-                const botResponseText = malayalamDialogues[randomIndex];
-                
-                await getAndPlayAudioResponse(botResponseText);
-
-            } catch (error) {
-                console.error('Failed to get bot response:', error);
-                createMessageElement("എന്തെങ്കിലും തെറ്റ് പറ്റി, മോനേ. എനിക്ക് ഇപ്പോൾ ഒന്നും പറയാൻ പറ്റുന്നില്ല.", 'bot');
-            } finally {
-                toggleLoading(false);
-                scrollToBottom();
-            }
+            const botResponseText = await getBotResponse(userMessage);
+            await getAndPlayAudioResponse(botResponseText);
         });
     </script>
 </body>
